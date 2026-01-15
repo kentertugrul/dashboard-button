@@ -51,9 +51,29 @@ function App() {
 
   if (childJourneyId) {
     // CASO 1: ÉXITO - ID ENCONTRADO, MOSTRAR BOTÓN DE REDIRECCIÓN
-    const targetUrl = `${BASE_URL}?child_journey_id=${encodeURIComponent(
-      childJourneyId
-    )}`;
+    
+    // Check if this is a gift order
+    let isGiftOrder = false;
+    if (Array.isArray(attributesArray)) {
+      const journeyAttribute = attributesArray.find((a) => a.key === "journey");
+      if (journeyAttribute && journeyAttribute.value) {
+        try {
+          const journeyData = JSON.parse(journeyAttribute.value);
+          isGiftOrder = journeyData.orderType === 'gift';
+        } catch (e) {
+          // JSON parse failed, not a gift order
+        }
+      }
+    }
+
+    // Set target URL and button text based on order type
+    const targetUrl = isGiftOrder
+      ? `https://gift.leparfum.ai/share?journey_id=${encodeURIComponent(childJourneyId)}`
+      : `${BASE_URL}?child_journey_id=${encodeURIComponent(childJourneyId)}`;
+    
+    const buttonText = isGiftOrder 
+      ? "Share your gift" 
+      : "Back to your dashboard";
 
     return (
       <BlockStack
@@ -68,7 +88,7 @@ function App() {
           appearance="critical"
           kind="primary"
         >
-          Back to your dashboard
+          {buttonText}
         </Button>
         <Divider />
         <Text padding={["none", "none", "loose", "none"]} visibility="hidden">
